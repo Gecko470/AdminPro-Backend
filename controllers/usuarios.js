@@ -5,10 +5,22 @@ const { generarToken } = require('../helpers/jwt');
 
 const getusuarios = async (req, res) => {
 
-    const usuarios = await Usuario.find({}, 'nombre email role google');
+    const desde = Number(req.query.desde) || 0;
+
+    /* const usuarios = await Usuario.find({}, 'nombre email role google').skip(desde).limit(5);
+
+    const totalRegistros = await Usuario.count(); */
+
+    //ESTO LO HACEMOS PARA EVITAR DOS PETICIONES, LO AGRUPAMOS TODO EN UN Promise.all
+    const [usuarios, totalRegistros] = await Promise.all([
+        Usuario.find({}, 'nombre email role google img').skip(desde).limit(5),
+        Usuario.count()
+    ]);
+
     res.json({
         ok: true,
-        usuarios: usuarios
+        usuarios: usuarios,
+        totalRegistros: totalRegistros
         /* uid: req.uid */
     });
 }
